@@ -1,0 +1,11 @@
+(in-package :cs325-user)
+
+(defun has-number-p (x)
+  (cond ((null x) nil)
+        ((numberp x) t)
+        ((and (listp x) (not (endp x)))
+         (cond ((some #'numberp x) t)
+               ((has-number-p (car x)) t) 
+               ((has-number-p (cdr x)) t)
+               (t nil)))
+        (t nil)))
