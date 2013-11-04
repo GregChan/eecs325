@@ -10,6 +10,7 @@
            (do ((l lst (cdr l)))
                ((null l) (princ "]"))
                (cond ((atom (car l))
+                      (princ ".")
                       (cond ((null (cadr l)) (princ (format nil "~A" (car l))))
                             (t (princ (format nil "~A " (car l))))))
                      (t
