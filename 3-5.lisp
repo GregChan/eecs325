@@ -1,8 +1,8 @@
 (in-package :cs325-user)
 
-(defun position+ (lst &optional (i -1))
+(defun position+ (lst &optional (i 0))
   (if (endp lst) lst
-      (cons (+ (car lst) (incf i)) (position+ (cdr lst) i))))
+      (cons (+ (car lst) i) (position+ (cdr lst) (1+ i)))))
 
 (defun position+ (lst)
   (do ((l lst (cdr l))
