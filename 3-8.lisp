@@ -12,7 +12,7 @@
                  (format t " ")))
            (format t "]")))
   nil)
-  
+
 (defun show-dots (lst)
   (cond ((null lst) (format t "~A" nil))
         ((atom lst) lst)
