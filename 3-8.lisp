@@ -1,25 +1,21 @@
 (in-package :cs325-user)
 
-(defun show-dots (lst)
-  (format t "~A" (generate-dotted-string lst)))
-
 (defun show-list (lst)
-  (cond ((null lst) (princ lst))
-        ((atom lst) (princ lst))
-        (t (princ "[")
+  (cond ((atom lst) (format t "~A" lst))
+        (t (format t "[")
            (do ((l lst (cdr l)))
-               ((null l) (princ "]"))
-               (cond ((atom l)
-                      (princ (format nil ". ~A]" l))
-                      (return-from show-list))
-                     (t (show-list (car l))
-                        (when (cdr l)
-                          (princ " ")))))))
+               ((atom l)
+                (unless (null l)
+                  (format t ". ~A" l)))
+               (show-list (car l))
+               (when (cdr l)
+                 (format t " ")))
+           (format t "]")))
   nil)
-
-(defun generate-dotted-string (lst)
-  (cond ((null lst) nil)
+  
+(defun show-dots (lst)
+  (cond ((null lst) (format t "~A" nil))
         ((atom lst) lst)
-        (t (format nil "(~A . ~A)" 
+        (t (format t "(~A . ~A)" 
                    (generate-dotted-string (car lst))
                    (generate-dotted-string (cdr lst))))))
