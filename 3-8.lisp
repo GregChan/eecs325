@@ -10,12 +10,17 @@
                (show-list (car l))
                (when (cdr l)
                  (format t " ")))
-           (format t "]")))
-  nil)
+           (format t "]"))))
+
+; (defun show-dots (lst)
+;   (cond ((atom lst) lst)
+;         (t (format nil "(~A . ~A)" 
+;                    (show-dots (car lst))
+;                    (show-dots (cdr lst))))))
 
 (defun show-dots (lst)
-  (cond ((null lst) (format t "~A" nil))
-        ((atom lst) lst)
-        (t (format t "(~A . ~A)" 
-                   (generate-dotted-string (car lst))
-                   (generate-dotted-string (cdr lst))))))
+  (cond ((atom lst) lst)
+        (t (do ((l lst (cdr l)))
+               ((null l) nil)
+               (princ (show-dots (car l)))
+               (princ (show-dots (cdr l)))))))
