@@ -10,6 +10,10 @@
                                  (list t else)
                                  (cons t else)))))
 
+(defun parse-between (exp start end lst)
+  (cond ((eql end (car exp)) (nreverse lst))
+        (t (parse-between (cdr exp) end (cons (car exp) lst)))))
+
 (defun parse-then-else (exp then else flag)
   (cond ((atom exp) (values (nreverse then) (nreverse else)))
         ((eql :then (car exp)) (parse-then-else (cdr exp) then else t))

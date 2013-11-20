@@ -5,6 +5,10 @@
 
 ;;; Update history:
 ;;;
+;;; 11-16-13 revamped MEMOIZE to be simpler and smarter [CKR]
+;;; 11-06-13 revamped final MAP-STREAM EOF test [CKR]
+;;; 10-30-13 added test to HAS-NUMBER-P [CKR]
+;;; 10-26-13 added a linebreak in MAP-STREAM [CKR]
 ;;; 10-14-13 changed DELETE-CAR tests to display L on failure [CKR] 
 ;;; 10-13-13 added dotted-pair test to DELETE-CAR [CKR]
 ;;; 11-06-12 added Dhrumil Mehta's test to STABLE-SET-DIFFERENCE [CKR]
@@ -576,61 +580,48 @@
 
 ;;; Ex 6.8
 
-;;; We memoize a function fn that resets last-val when called.
-;;; (called-p id fn exp) is a utility function to check whether
-;;; call-fn was called or not. The "msg" parameter is there just
+;;; We memoize a function fn that prints to make it easy to check
+;;; if it was called. The keywords in the assert's are
 ;;; to make it easier to tell which tests failed, if any.
 
+(defvar *memo-out* nil)
+(defun memo-test (x) (prin1 x *memo-out*))
+(defun memo-call (fn x)
+  (let ((*memo-out* (make-string-output-stream)))
+    (list (funcall fn x) (get-output-stream-string *memo-out*))))
+
 (define-test memoize
-  (let ((called nil))
-    (labels ((call-fn (x) (setq called t) (and (not (eql x 'q)) (list x)))
-             (called-p (fn x msg)
-               (setq called nil)
-               (funcall fn x)
-               called))
-      (let ((memo-fn (memoize #'call-fn)))
+  (let ((fn1 (memoize #'memo-test)))
 
-        ;; start with new values
-        (assert-true (called-p memo-fn 'x "first call"))
-        (assert-true (called-p memo-fn '(a b) "first call"))
-        (assert-true (called-p memo-fn nil "first call"))
-        (assert-true (called-p memo-fn 'q "first call"))
-
-        ;; no calls with old values
-        (assert-false (called-p memo-fn 'x "second call"))
-        (assert-false (called-p memo-fn '(a b) "second call, list arg"))
-        (assert-false (called-p memo-fn nil "second call, nil argument"))
-        (assert-false (called-p memo-fn 'q "second call, nil return value"))
-
-        ;; make sure memoized function returns correct values
-        ;; with old and new values
-        (assert-equal '(x) (funcall memo-fn 'x))
-        (assert-equal '((a b)) (funcall memo-fn '(a b)))
-        (assert-equal '(nil) (funcall memo-fn nil))
-        (assert-equal nil (funcall memo-fn 'q))
-
-        (assert-equal '((c d)) (funcall memo-fn '(c d)))
-
-        ;; x, (a b), nil should be new values in a different
-        ;; memoized function
-        (let ((memo-fn2 (memoize #'call-fn)))
-          (assert-true (called-p memo-fn2 'x "first call for memo-fn2"))
-          (assert-true (called-p memo-fn2 '(a b) "first call for memo-fn2"))
-          (assert-true (called-p memo-fn2 nil "first call for memo-fn2"))
-
-          ;; clear the internal table
-          (assert-equal nil (funcall memo-fn))
+    ;; start with new values
+    (assert-equal '(x "X") (memo-call fn1 'x) :test1)
+    (assert-equal '((a b) "(A B)") (memo-call fn1 '(a b)) :test2)
+    (assert-equal '(nil "NIL") (memo-call fn1 nil) :test3)
+    
+    ;; no calls with old values
+    (assert-equal '(x "") (memo-call fn1 'x) :test4)
+    (assert-equal '((a b) "") (memo-call fn1 '(a b)) :test5)
+    (assert-equal '(nil "") (memo-call fn1 nil) :test6)
+    
+    ;; make sure a new memoized version of the function
+    ;; gets called
+    (let ((fn2 (memoize #'memo-test)))
+      ;; the old function is still not getting called
+      (assert-equal '(x "") (memo-call fn1 'x) :test7)
+      ;; and the new one is
+      (assert-equal '(x "X") (memo-call fn2 'x) :test8)
+      (assert-equal '((a b) "(A B)") (memo-call fn2 '(a b)) :test9)
+      (assert-equal '(nil "NIL") (memo-call fn2 nil) :test10)
+      
+      ;; clear the internal table for the first memoized version
+      (assert-equal nil (funcall fn1))
           
-          ;; x, (a b) and nil should be new in cleared function
-          (assert-true (called-p memo-fn 'x "first call after memo-fn1 reset"))
-          (assert-true (called-p memo-fn '(a b) "first call after memo-fn1 reset"))
-          (assert-true (called-p memo-fn nil "first call after memo-fn1 reset"))
-        
-          ;; still old in other function
-          (assert-false (called-p memo-fn2 'x "second call for memo-fn2"))
-          (assert-false (called-p memo-fn2 '(a b) "second call for memo-fn2"))
-          (assert-false (called-p memo-fn2 nil "second call for memo-fn2"))
-          )))))
+      ;; fn1 should be called 
+      (assert-equal '(x "X") (memo-call fn1 'x) :test11)
+      
+      ;; fn2 should not be called
+      (assert-equal '(x "") (memo-call fn2 'x) :test12)
+      )))
 
 
 ;;; Chapter 7
@@ -644,12 +635,24 @@
                   in)
       (nreverse l))))
 
-(defun generate-test-string (name)
-  (format nil "~{~S~%~} ;;"
-    (subst-if nil #'hash-table-p 
-              (subforms
-               (function-lambda-expression (symbol-function name))))))
+;; Note: Lispworks adds an unprintable hashtable object to the
+;; function lambda expression
+(defun make-expected-forms (name)
+  (subst-if nil #'hash-table-p 
+            (subforms (function-lambda-expression (symbol-function name)))))
 
+(defun make-test-text (forms)
+  (let ((*print-level* nil)
+        (*print-length* nil))
+    (format nil "~{~S~%~} ;;" forms)))
+
+(defun make-testing-forms (expected actual)
+  (let ((alen (length actual))
+        (elen (length expected)))
+    (and (< alen elen)
+         (subseq expected (max 0 (- alen 1)) (min elen (+ alen 3))))))
+
+  
 (defun subforms (l)
   (adjoin l
           (and (consp l)
@@ -659,34 +662,22 @@
 (define-test map-stream
   (assert-equal nil (map-stream-list #'identity "   "))
   (assert-equal '(nil) (map-stream-list #'identity "nil"))
-  (assert-equal '(1 a (2 3)) (map-stream-list #'identity "  1 a (2 3)  "))
+  (assert-equal '(1 a (2 3)) (map-stream-list #'identity "  1 a (2
+    3)  "))
   (assert-equal '(a nil b c) (map-stream-list #'identity "a nil b c"))
   (assert-equal '(a eof b c) (map-stream-list #'identity "a eof b c"))
   (assert-equal '(2 3 4) (map-stream-list #'1+ "1 2 3"))
   (assert-equal '(a b c) (map-stream-list #'identity "a b c ;;"))
 
-  
-  ;; If your code returns a number smaller than expected, it means
-  ;; it used an EOF object that was found in the input stream.
-  ;; Note: Lispworks adds an unprintable hashtable object to the
-  ;; function lambda expression
-  (let ((expected (subst-if nil #'hash-table-p 
-                            (subforms (function-lambda-expression #'map-stream))))
-        (*print-level* nil)
-        (*print-length* nil))
-    (let* ((text (format nil "~{~S~%~} ;;" expected))
-           (actual (map-stream-list #'identity text))
-           (diff-pos (mismatch expected actual :test 'equal)))
-      (cond ((null diff-pos) t)
-            ((= diff-pos (length actual))
-             (fail "reading halted prematurely on input ~S"
-                   (nth diff-pos expected)))
-            (t
-             (error "unexpected input: expected ~S but saw ~S"
-                   (nth diff-pos expected) (nth diff-pos actual))))))
-  (fail "huh?!")
+  (let* ((expected (make-expected-forms 'map-stream))
+         (actual (map-stream-list #'identity (make-test-text expected)))
+         (test-forms (make-testing-forms expected actual)))
+    (unless (null test-forms)
+      (let ((test-text (make-test-text test-forms)))
+        (assert-equal test-forms 
+                      (map-stream-list #'identity test-text)
+                      test-text))))
   )
-
 
 ;;; Ex 7.3 modified
 
@@ -1060,6 +1051,7 @@ d)</pre> pre</html>"))
  (assert-true (has-number-p '(a (1))))
  (assert-false (has-number-p '(a (a))))
  (assert-true (has-number-p '((a 1) c d)))
+ (assert-true (has-number-p '((a b) (c 1))))
  )
 
 ;;; Ex Lisp #2
