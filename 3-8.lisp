@@ -12,15 +12,8 @@
                  (format t " ")))
            (format t "]"))))
 
-; (defun show-dots (lst)
-;   (cond ((atom lst) lst)
-;         (t (format nil "(~A . ~A)" 
-;                    (show-dots (car lst))
-;                    (show-dots (cdr lst))))))
-
-(defun show-dots (lst)
-  (cond ((atom lst) lst)
-        (t (do ((l lst (cdr l)))
-               ((null l) nil)
-               (princ (show-dots (car l)))
-               (princ (show-dots (cdr l)))))))
+(defun show-dots (lst &optional (can-print t))
+  (cond ((atom lst) (format can-print "~A" lst))
+        (t (format can-print "(~A . ~A)" 
+                   (show-dots (car lst) nil) 
+                   (show-dots (cdr lst) nil)))))
