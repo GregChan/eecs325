@@ -1,9 +1,7 @@
 (in-package :cs325-user)
 
 (defmacro key-if (test &rest args)
-  '(,cond 
-    ,(cons test (parse :then :else args nil nil)) 
-    ,(cons t (parse :else :then args nil nil))))
+  `(cond ,(cons test (parse :then :else args nil nil)) ,(cons t (parse :else :then args nil nil))))
 
 (defun parse (start end exp lst flag)
   (cond ((eql start (car exp)) (parse start end (cdr exp) lst t))

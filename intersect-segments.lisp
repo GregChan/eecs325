@@ -15,11 +15,11 @@
   (let* ((a (/ (cross-product v2 v3) cross-bottom))
          (b (/ (cross-product v1 v3) cross-bottom)))
     (cond ((and (between-zero-and-one a) (between-zero-and-one b)) (values (+ x1 (* a (car v1))) (+ y1 (* a (cadr v1)))))
-    (t nil))))
+          (t nil))))
 
 ;Determines if a number is between zero and one
 (defun between-zero-and-one (x)
-  (and (>= x 0) (<= x 1)))
+  (>= 1 x 0))
 
 ;Determines if two line segments are parallel or disjoint by using the cross product formula between the two segment vectors. If the two lines overlap, the appropriate overlap is returned. NIL is returned if the lines are disjoint.
 (defun parallel-or-disjoint (x1 y1 x2 y2 x3 y3 x4 y4)
