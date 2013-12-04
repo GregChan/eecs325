@@ -18,6 +18,6 @@
   (cond ((< end start) nil)
         (t (let* ((mid (+ start (round (- end start) 2)))
                   (x2 (funcall key (aref vec mid))))
-             (cond ((> x x2) (bin-search x vec :start start :end (1- mid) :key key))
-                   ((< x x2) (bin-search x vec :start (1+ mid) :end end :key key))
+             (cond ((> x x2) (bin-search x vec :start (1+ mid) :end end :key key))
+                   ((< x x2) (bin-search x vec :start start :end (1- mid) :key key))
                    (t (aref vec mid)))))))
