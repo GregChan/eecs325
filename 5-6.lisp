@@ -10,4 +10,4 @@
 (defun intersperse (obj lst)
   (cond ((null lst) nil) 
     ((null (cdr lst)) (list (car lst)))
-    (t (list* (car lst) obj (intersperse obj (cdr lst))))))
+    (t (cons (car lst) (cons obj (intersperse obj (cdr lst)))))))

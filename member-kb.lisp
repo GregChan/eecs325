@@ -2,5 +2,7 @@
 
 (defparameter *member-kb* 
   '(
-    (member ?x ?l)
+    (member ?x (cons ?x ?a))
+    (<- (member ?x (cons ?b ?y))
+        (member ?x ?y))
     ))
