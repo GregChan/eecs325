@@ -13,11 +13,7 @@
 (defun non-parallel-intersection (x1 y1 v1 v2 v3 cross-bottom)
   (let* ((a (/ (cross-product v2 v3) cross-bottom))
          (b (/ (cross-product v1 v3) cross-bottom)))
-    (and (between-zero-and-one a) (between-zero-and-one b) (values (+ x1 (* a (car v1))) (+ y1 (* a (cadr v1)))))))
-
-;Determines if a number is between zero and one
-(defun between-zero-and-one (x)
-  (>= 1 x 0))
+    (and (>= 1 a 0) (>= 1 b 0) (values (+ x1 (* a (car v1))) (+ y1 (* a (cadr v1)))))))
 
 ;Determines if two line segments are parallel or disjoint by using the cross product formula between the two segment vectors. If the two lines overlap, the appropriate overlap is returned. NIL is returned if the lines are disjoint.
 (defun parallel-intersection (x1 y1 x2 y2 x3 y3 x4 y4)
@@ -34,8 +30,8 @@
   (let ((start (max x1 x2))
         (end (min x3 x4))
         (bound (max x3 x4)))
-    (if (or (and (<= start end) (>= start bound))
-            (and (>= start end) (<= start bound)))
+    (if (or (and (<= bound start end))
+            (and (>= bound start end)))
         (list start (max y1 y2) end (min y3 y4))
         nil)))
 
