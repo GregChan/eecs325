@@ -5,6 +5,7 @@
 
 ;;; Update history:
 ;;;
+;;; 12-11-13 added a test case to INTERSECT-SEGMENTS [CKR]
 ;;; 11-16-13 revamped MEMOIZE to be simpler and smarter [CKR]
 ;;; 11-06-13 revamped final MAP-STREAM EOF test [CKR]
 ;;; 10-30-13 added test to HAS-NUMBER-P [CKR]
@@ -808,46 +809,47 @@ d)</pre> pre</html>"))
 (define-test intersect-segments
   (assert-equality 'segment-equals 
                    '(2 2 3 3)
-                   (multiple-value-list (intersect-segments '1 1 3 3 2 2 4 4)))
+                   (multiple-value-list (intersect-segments 1 1 3 3 2 2 4 4)))
   (assert-equality 'segment-equals
                '(2 2 3 3) 
-               (multiple-value-list (intersect-segments '3 3 1 1 2 2 4 4)))
+               (multiple-value-list (intersect-segments 3 3 1 1 2 2 4 4)))
   (assert-equality 'segment-equals 
                    '(2 2 3 3) 
-                   (multiple-value-list (intersect-segments '1 1 3 3 2 2 5 5)))
+                   (multiple-value-list (intersect-segments 1 1 3 3 2 2 5 5)))
   (assert-equal '(nil)
-                (multiple-value-list (intersect-segments '1 1 2 2 3 3 4 4)))
+                (multiple-value-list (intersect-segments 1 1 2 2 3 3 4 4)))
   (assert-equality 'segment-equals 
                    '(2 2 2 2)
-                   (multiple-value-list (intersect-segments '1 1 2 2 2 2 3 3)))
+                   (multiple-value-list (intersect-segments 1 1 2 2 2 2 3 3)))
   (assert-equality 'segment-equals
                    '(2 2) 
-                   (multiple-value-list (intersect-segments '1 1 3 3 3 1 1 3)))
+                   (multiple-value-list (intersect-segments 1 1 3 3 3 1 1 3)))
   (assert-equal '(nil) 
-                (multiple-value-list (intersect-segments '1 1 3 3 4 0 3 1)))
+                (multiple-value-list (intersect-segments 1 1 3 3 4 0 3 1)))
   (assert-equality 'segment-equals
                    '(0 0) 
-                   (multiple-value-list (intersect-segments '-1 1 1 -1 0 0 1 1)))
+                   (multiple-value-list (intersect-segments -1 1 1 -1 0 0 1 1)))
   (assert-equal '(nil) 
-                (multiple-value-list (intersect-segments '-3 1 0 -2 -2 1 -1 0)))
+                (multiple-value-list (intersect-segments -3 1 0 -2 -2 1 -1 0)))
+  (assert-equal '(-2 1 -1 0)
+                (multiple-value-list (intersect-segments -3 2 1 -2 -2 1 -1 0)))
   (assert-equality 'segment-equals
                    '(2 2 2 2) 
-                   (multiple-value-list (intersect-segments '2 2 2 2 2 2 2 2)))
+                   (multiple-value-list (intersect-segments 2 2 2 2 2 2 2 2)))
   (assert-equality 'segment-equals 
                    '(2 3 2 4) 
-                   (multiple-value-list (intersect-segments '2 2 2 4 2 3 2 5)))
+                   (multiple-value-list (intersect-segments 2 2 2 4 2 3 2 5)))
   (assert-equal '(nil) 
-                (multiple-value-list (intersect-segments '2 2 2 2 3 3 3 3)))
+                (multiple-value-list (intersect-segments 2 2 2 2 3 3 3 3)))
   
   (assert-equality 'segment-equals
                    '(2 2 2 2)
-                   (multiple-value-list (intersect-segments '2 2 2 2 1 1 3 3)))
+                   (multiple-value-list (intersect-segments 2 2 2 2 1 1 3 3)))
   (assert-equality 'segment-equals
                    '(2 2 2 2)
-                   (multiple-value-list (intersect-segments '0 0 2 2 2 2 2 2)))
+                   (multiple-value-list (intersect-segments 0 0 2 2 2 2 2 2)))
   (assert-equal '(nil)
-                (multiple-value-list (intersect-segments '0 0 1 1 2 2 2 2)))
-  
+                (multiple-value-list (intersect-segments 0 0 1 1 2 2 2 2)))
   )
 
 

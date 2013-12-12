@@ -19,10 +19,8 @@
 (defun parallel-intersection (x1 y1 x2 y2 x3 y3 x4 y4)
   (let ((result (coincident x1 y1 x2 y2 x3 y3 x4 y4)))
     (cond ((null result) nil)
-          ((eql (slope x1 y1 x2 y2) 'point)
-           (if (eql (slope x3 y3 x4 y4) 'point)
-               (values-list result)
-               (values (car result) (cadr result) (car result) (cadr result))))
+          ((or (eql (slope x1 y1 x2 y2) 'point) (eql (slope x3 y3 x4 y4) 'point))
+               (values (car result) (cadr result) (car result) (cadr result)))
           (t (values-list result)))))
 
 ;Finds the coincident overlap given two parallel line segments. If there is no overlap return nil.
@@ -30,8 +28,7 @@
   (let ((start (max x1 x2))
         (end (min x3 x4))
         (bound (max x3 x4)))
-    (if (or (and (<= bound start end))
-            (and (>= bound start end)))
+    (if (>= start end)
         (list start (max y1 y2) end (min y3 y4))
         nil)))
 
