@@ -5,9 +5,10 @@
          (v2 (list (- x4 x3) (- y4 y3)))
          (v3 (list (- x1 x3) (- y1 y3)))
          (cross-bottom (cross-product v1 v2)))
-    (cond ((= cross-bottom 0) 
+    (cond ((and (= 0 (cross-product v2 v3)) (= 0 (cross-product v1 v3)) (= 0 cross-bottom))
            (parallel-intersection x1 y1 x2 y2 x3 y3 x4 y4))
-          (t (non-parallel-intersection x1 y1 v1 v2 v3 cross-bottom)))))
+          ((not (= 0 cross-bottom)) (non-parallel-intersection x1 y1 v1 v2 v3 cross-bottom))
+          (t nil))))
 
 ;Determines if two line segments are intersecting. If the segments are intersecting then the function returns the values of the intersection point. If not, the function returns nil.
 (defun non-parallel-intersection (x1 y1 v1 v2 v3 cross-bottom)
@@ -20,17 +21,21 @@
   (let ((result (coincident x1 y1 x2 y2 x3 y3 x4 y4)))
     (cond ((null result) nil)
           ((or (eql (slope x1 y1 x2 y2) 'point) (eql (slope x3 y3 x4 y4) 'point))
-               (values (car result) (cadr result) (car result) (cadr result)))
+           (values (car result) (cadr result) (car result) (cadr result)))
           (t (values-list result)))))
 
 ;Finds the coincident overlap given two parallel line segments. If there is no overlap return nil.
 (defun coincident (x1 y1 x2 y2 x3 y3 x4 y4)
-  (let ((start (max x1 x2))
-        (end (min x3 x4))
-        (bound (max x3 x4)))
-    (if (>= start end)
-        (list start (max y1 y2) end (min y3 y4))
-        nil)))
+  (let ((l1-start (max x1 x2))
+        (l1-end (min x1 x2))
+        (l2-start (max x3 x4))
+        (l2-end (min x3 x4)))
+    (cond ((and (> l1-start x3) (> l1-start x4) (< l1-end x3) (< l1-end x4)) 
+           (list x3 y3 x4 y4))
+          ((and (> l2-start x1) (> l2-start x2) (< l2-end x1) (< l2-end x2)) 
+           (list x1 y1 x2 y2))
+          ((>= l1-start l2-end) (list l1-start (max y1 y2) l2-end (min y3 y4)))
+          (t nil))))
 
 ;Takes the cross product of two vectors represented as lists.
 (defun cross-product (v1 v2)
